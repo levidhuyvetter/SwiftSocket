@@ -10,11 +10,13 @@ public class Socket {
     private var socket:Int32
     
     public init() {
-        let type = SOCK_STREAM
-        let proto = AF_INET
         #if os(Linux) || os(FreeBSD)
+        let type = Int32(1)
+        let proto = AF_INET
         self.socket = Glibc.socket(proto, type, 0)
         #else
+        let type = SOCK_STREAM
+        let proto = AF_INET
         self.socket = Darwin.socket(proto, type, 0)
         #endif
     }
