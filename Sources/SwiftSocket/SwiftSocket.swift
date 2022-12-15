@@ -1,5 +1,3 @@
-import Foundation
-
 #if os(Linux) || os(FreeBSD)
     import Glibc
 #else
@@ -37,21 +35,20 @@ public class Socket {
         }
     }
     
-    public func listen(_ cb:@escaping(Data)->Data) {
+    public func listen(_ cb:@escaping(String)->String) {
         #if os(Linux) || os(FreeBSD)
         Glibc.listen(self.socket, 5)
         #else
         Darwin.listen(self.socket, 5)
         #endif
         
-        DispatchQueue.global(qos: .utility).async {
-            repeat {
-                let client = accept(self.socket, nil, nil)
-                let data = cb(Data())
-                let bytes = data.withUnsafeBytes { return $0.baseAddress }
-                send(client, bytes, Int(data.count), 0)
-                close(client)
-            } while self.socket > -1
-        }
+        repeat {
+            let client = accept(self.socket, nil, nil)
+            let data = cb("")
+            _ = data.withCString { ptr in
+                send(client, ptr, Int(data.count), 0)
+            }
+            close(client)
+        } while self.socket > -1
     }
 }
